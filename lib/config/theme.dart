@@ -2,9 +2,12 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static final Color primaryColor = Color(0xFF2F80ED); // The main blue from the buttons
-  static final Color lightGreyColor = Color(0xFFF2F2F2); // Light background grey
-  static final Color mediumGreyColor = Color(0xFFBDBDBD); // Border and placeholder text color
+  static final Color primaryColor =
+      Color(0xFF2F80ED); // The main blue from the buttons
+  static final Color lightGreyColor =
+      Color(0xFFF2F2F2); // Light background grey
+  static final Color mediumGreyColor =
+      Color(0xFFBDBDBD); // Border and placeholder text color
   static final Color darkGreyColor = Color(0xFF4F4F4F); // Main text color
 
   static final ThemeData lightTheme = ThemeData(
@@ -16,9 +19,24 @@ class AppTheme {
       iconTheme: IconThemeData(color: darkGreyColor),
     ),
     textTheme: TextTheme(
-      headlineSmall: TextStyle(color: darkGreyColor, fontWeight: FontWeight.bold, fontSize: 24),
-      bodyLarge: TextStyle(color: darkGreyColor, fontSize: 16),
+      headlineSmall: TextStyle(
+          color: darkGreyColor, fontWeight: FontWeight.bold, fontSize: 24),
+      bodyLarge: TextStyle(
+          color: darkGreyColor, fontSize: 16), // Ensure this uses darkGreyColor
       bodyMedium: TextStyle(color: mediumGreyColor, fontSize: 14),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      hintStyle: TextStyle(color: mediumGreyColor), // Style for the placeholder
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: mediumGreyColor),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide:
+            BorderSide(color: primaryColor), // Border color when focused
+      ),
+      labelStyle: TextStyle(color: darkGreyColor),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -31,4 +49,4 @@ class AppTheme {
       ),
     ),
   );
-} 
+}
