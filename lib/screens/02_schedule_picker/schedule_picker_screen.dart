@@ -5,7 +5,10 @@ import '../../repositories/mock_schedule_repository.dart';
 import '../../widgets/common/primary_button.dart';
 
 class SchedulePickerScreen extends StatefulWidget {
-  const SchedulePickerScreen({Key? key}) : super(key: key);
+  final VoidCallback onNext;
+
+  const SchedulePickerScreen({Key? key, required this.onNext})
+      : super(key: key);
 
   @override
   _SchedulePickerScreenState createState() => _SchedulePickerScreenState();
@@ -119,9 +122,7 @@ class _SchedulePickerScreenState extends State<SchedulePickerScreen> {
             padding: const EdgeInsets.all(16.0),
             child: PrimaryButton(
               text: "Continue",
-              onPressed: _selectedSlot != null
-                  ? () {}
-                  : null, // Enabled only if a slot is selected
+              onPressed: _selectedSlot != null ? widget.onNext : null,
             ),
           ),
         ),

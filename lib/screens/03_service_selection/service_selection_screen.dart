@@ -5,7 +5,10 @@ import '../../repositories/mock_service_repository.dart';
 import '../../widgets/common/primary_button.dart';
 
 class ServiceSelectionScreen extends StatefulWidget {
-  const ServiceSelectionScreen({Key? key}) : super(key: key);
+  final VoidCallback onNext;
+
+  const ServiceSelectionScreen({Key? key, required this.onNext})
+      : super(key: key);
 
   @override
   _ServiceSelectionScreenState createState() => _ServiceSelectionScreenState();
@@ -110,7 +113,7 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
             padding: const EdgeInsets.all(16.0),
             child: PrimaryButton(
               text: "Continue",
-              onPressed: () {}, // For now, this does nothing
+              onPressed: widget.onNext,
             ),
           ),
         ),

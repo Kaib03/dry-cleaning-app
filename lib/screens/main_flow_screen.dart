@@ -19,9 +19,9 @@ class _MainFlowScreenState extends State<MainFlowScreen> {
   void initState() {
     super.initState();
     _screens = [
-      AddressEntryScreen(onNext: () => _navigateToPage(1)), // Pass the function
-      SchedulePickerScreen(), // Other screens remain for now
-      ServiceSelectionScreen(),
+      AddressEntryScreen(onNext: () => _navigateToPage(1)),
+      SchedulePickerScreen(onNext: () => _navigateToPage(2)),
+      ServiceSelectionScreen(onNext: () => _navigateToPage(3)),
       OrderSummaryScreen(),
     ];
   }
