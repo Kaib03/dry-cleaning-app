@@ -38,72 +38,81 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Select Services")),
-      body: FutureBuilder<List<ServiceItem>>(
-        future: _servicesFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("No services available."));
-          }
-          final services = snapshot.data!;
-          return ListView.builder(
-            padding: const EdgeInsets.all(8.0),
-            itemCount: services.length,
-            itemBuilder: (context, index) {
-              final service = services[index];
-              final quantity = _itemQuantities[service.id] ?? 0;
-              return Card(
-                margin:
-                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 500),
+        child: Scaffold(
+          appBar: AppBar(title: const Text("Select Services")),
+          body: FutureBuilder<List<ServiceItem>>(
+            future: _servicesFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text("No services available."));
+              }
+              final services = snapshot.data!;
+              return ListView.builder(
+                padding: const EdgeInsets.all(8.0),
+                itemCount: services.length,
+                itemBuilder: (context, index) {
+                  final service = services[index];
+                  final quantity = _itemQuantities[service.id] ?? 0;
+                  return Card(
+                    margin: const EdgeInsets.symmetric(
+                        vertical: 8.0, horizontal: 8.0),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(service.name,
-                              style: Theme.of(context).textTheme.titleLarge),
-                          const SizedBox(height: 4),
-                          Text("\$${service.price.toStringAsFixed(2)} each"),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(service.name,
+                                  style:
+                                      Theme.of(context).textTheme.titleLarge),
+                              const SizedBox(height: 4),
+                              Text(
+                                  "\$${service.price.toStringAsFixed(2)} each"),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.remove_circle),
+                                onPressed: quantity > 0
+                                    ? () => setState(() =>
+                                        _itemQuantities[service.id] =
+                                            quantity - 1)
+                                    : null,
+                              ),
+                              Text('$quantity',
+                                  style:
+                                      Theme.of(context).textTheme.titleLarge),
+                              IconButton(
+                                icon: const Icon(Icons.add_circle),
+                                onPressed: () => setState(() =>
+                                    _itemQuantities[service.id] = quantity + 1),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.remove_circle),
-                            onPressed: quantity > 0
-                                ? () => setState(() =>
-                                    _itemQuantities[service.id] = quantity - 1)
-                                : null,
-                          ),
-                          Text('$quantity',
-                              style: Theme.of(context).textTheme.titleLarge),
-                          IconButton(
-                            icon: const Icon(Icons.add_circle),
-                            onPressed: () => setState(() =>
-                                _itemQuantities[service.id] = quantity + 1),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               );
             },
-          );
-        },
-      ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: PrimaryButton(
-          text: "Continue",
-          onPressed: () {}, // For now, this does nothing
+          ),
+          bottomNavigationBar: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: PrimaryButton(
+              text: "Continue",
+              onPressed: () {}, // For now, this does nothing
+            ),
+          ),
         ),
       ),
     );
