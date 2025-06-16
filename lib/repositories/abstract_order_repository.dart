@@ -1,0 +1,1 @@
+// Purpose: Defines the contract (interface) for order-related data operations. 

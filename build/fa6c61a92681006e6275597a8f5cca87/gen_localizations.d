@@ -1,0 +1,1 @@
+ /Users/samerroz/Dropbox/Mac/Desktop/Scalewave/Random_project/dry-cleaning-app/.dart_tool/flutter_gen/gen_l10n/app_localizations.dart:  /Users/samerroz/Dropbox/Mac/Desktop/Scalewave/Random_project/dry-cleaning-app/l10n.yaml

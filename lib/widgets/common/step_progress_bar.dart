@@ -1,0 +1,1 @@
+// Purpose: The visual progress bar showing the user's current step. 
