@@ -6,7 +6,9 @@ import '../../repositories/mock_user_address_repository.dart';
 import '../../widgets/common/primary_button.dart';
 
 class AddressEntryScreen extends StatefulWidget {
-  const AddressEntryScreen({super.key});
+  final VoidCallback onNext; // Add this
+  const AddressEntryScreen(
+      {super.key, required this.onNext}); // Update constructor
 
   @override
   _AddressEntryScreenState createState() => _AddressEntryScreenState();
@@ -92,7 +94,7 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
         padding: const EdgeInsets.all(16.0),
         child: PrimaryButton(
           text: localizations.continue_button,
-          onPressed: () {},
+          onPressed: widget.onNext, // Use the callback here
         ),
       ),
     );
