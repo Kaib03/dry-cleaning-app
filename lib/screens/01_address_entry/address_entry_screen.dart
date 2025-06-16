@@ -1,9 +1,11 @@
 // Purpose: UI for Step 1: Pickup & Delivery Address Entry.
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../app_localizations.dart';
 import '../../models/user_address.dart';
 import '../../repositories/mock_user_address_repository.dart';
 import '../../widgets/common/primary_button.dart';
+import '../../state/order_provider.dart';
 
 class AddressEntryScreen extends StatefulWidget {
   final VoidCallback onNext; // Add this
@@ -181,7 +183,36 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
             padding: const EdgeInsets.all(16.0),
             child: PrimaryButton(
               text: localizations.continue_button,
-              onPressed: widget.onNext, // Use the callback here
+              onPressed: () {
+                // Use the Provider to get the OrderProvider instance
+                final orderProvider =
+                    Provider.of<OrderProvider>(context, listen: false);
+
+                // Create a UserAddress object from the controllers
+                final pickupAddress = UserAddress(
+                  street: _pickupStreetController.text,
+                  apartment: _pickupAptController.text,
+                  city: _pickupCityController.text.isEmpty
+                      ? "Default City"
+                      : _pickupCityController.text,
+                  zipCode: _pickupZipController.text.isEmpty
+                      ? "00000"
+                      : _pickupZipController.text,
+                );
+
+                orderProvider.setPickupAddress(pickupAddress);
+
+                // Also handle delivery address
+                if (_isSameAsPickup) {
+                  orderProvider.setDeliveryAddress(pickupAddress);
+                } else {
+                  // In a real app, you'd create a separate Delivery Address object
+                  orderProvider.setDeliveryAddress(null);
+                }
+
+                // Navigate to the next page
+                widget.onNext();
+              },
             ),
           ),
         ),

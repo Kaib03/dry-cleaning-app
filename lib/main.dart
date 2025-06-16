@@ -22,6 +22,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
           title: 'Dry Cleaning App',
           theme: AppTheme.lightTheme,
+          locale: const Locale('es'), // Set Spanish as the default
           localizationsDelegates: [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,

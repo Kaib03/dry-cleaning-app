@@ -16,5 +16,25 @@ class OrderProvider with ChangeNotifier {
   ScheduleSlot? get scheduleSlot => _scheduleSlot;
   List<ServiceItem> get selectedItems => _selectedItems;
 
-  // Setters will be added here later
+  // Setters
+  void setPickupAddress(UserAddress address) {
+    _pickupAddress = address;
+    notifyListeners();
+  }
+
+  void setDeliveryAddress(UserAddress? address) {
+    _deliveryAddress = address;
+    notifyListeners();
+  }
+
+  void setSchedule(ScheduleSlot slot) {
+    _scheduleSlot = slot;
+    notifyListeners();
+  }
+
+  void setSelectedServices(List<ServiceItem> items) {
+    _selectedItems.clear();
+    _selectedItems.addAll(items);
+    notifyListeners();
+  }
 }

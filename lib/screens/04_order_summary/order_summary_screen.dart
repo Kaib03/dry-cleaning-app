@@ -1,107 +1,167 @@
 // Purpose: UI for the final step: Reviewing and confirming the order.
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../widgets/common/primary_button.dart';
+import '../../state/order_provider.dart';
 
 class OrderSummaryScreen extends StatelessWidget {
   const OrderSummaryScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // Hardcoded data for UI layout purposes
-    const String pickupAddress = "123 Main Street, Apt 4B\nNew York, NY 10001";
-    const String pickupTime = "Tomorrow, Jun 17, 2025\n2:00 PM - 4:00 PM";
-    const String deliveryAddress = "Same as pickup address";
+    return Consumer<OrderProvider>(
+      builder: (context, order, child) {
+        // Format the data from the provider
+        final pickupAddress = order.pickupAddress != null
+            ? '${order.pickupAddress!.street}${(order.pickupAddress!.apartment?.isNotEmpty ?? false) ? ', ${order.pickupAddress!.apartment}' : ''}\n${order.pickupAddress!.city}, ${order.pickupAddress!.zipCode}'
+            : 'Not selected';
 
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 500),
-        child: Scaffold(
-          appBar: AppBar(
-            title: const Text("Order Summary"),
-          ),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                _buildSection(
-                  context,
-                  title: "Pickup Details",
-                  icon: Icons.location_on_outlined,
-                  content: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Pickup Address",
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyLarge
-                              ?.copyWith(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 4),
-                      Text(pickupAddress,
-                          style: Theme.of(context).textTheme.bodyLarge),
-                      const SizedBox(height: 16),
-                      Text("Pickup Date & Time",
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyLarge
-                              ?.copyWith(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 4),
-                      Text(pickupTime,
-                          style: Theme.of(context).textTheme.bodyLarge),
-                    ],
-                  ),
+        final deliveryAddress = order.deliveryAddress != null
+            ? (order.deliveryAddress == order.pickupAddress
+                ? 'Same as pickup address'
+                : '${order.deliveryAddress!.street}${(order.deliveryAddress!.apartment?.isNotEmpty ?? false) ? ', ${order.deliveryAddress!.apartment}' : ''}\n${order.deliveryAddress!.city}, ${order.deliveryAddress!.zipCode}')
+            : 'Not selected';
+
+        final pickupTime = order.scheduleSlot != null
+            ? '${order.scheduleSlot!.startTime.format(context)} - ${order.scheduleSlot!.endTime.format(context)}'
+            : 'Not selected';
+
+        // Calculate total from selected services
+        double subtotal = 0;
+        for (var item in order.selectedItems) {
+          subtotal += item.price * item.quantity;
+        }
+        final delivery = 3.99;
+        final tax = subtotal * 0.08; // 8% tax
+        final total = subtotal + delivery + tax;
+
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: Scaffold(
+              appBar: AppBar(
+                title: const Text("Order Summary"),
+              ),
+              body: SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    _buildSection(
+                      context,
+                      title: "Pickup Details",
+                      icon: Icons.location_on_outlined,
+                      content: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Pickup Address",
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.copyWith(fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 4),
+                          Text(pickupAddress,
+                              style: Theme.of(context).textTheme.bodyLarge),
+                          const SizedBox(height: 16),
+                          Text("Pickup Date & Time",
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.copyWith(fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 4),
+                          Text(pickupTime,
+                              style: Theme.of(context).textTheme.bodyLarge),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSection(
+                      context,
+                      title: "Delivery Details",
+                      icon: Icons.home_outlined,
+                      content: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Delivery Address",
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.copyWith(fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 4),
+                          Text(deliveryAddress,
+                              style: Theme.of(context).textTheme.bodyLarge),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSection(
+                      context,
+                      title: "Selected Items",
+                      icon: Icons.checkroom_outlined,
+                      content: order.selectedItems.isEmpty
+                          ? Text("No items selected",
+                              style: Theme.of(context).textTheme.bodyLarge)
+                          : Column(
+                              children: order.selectedItems
+                                  .map(
+                                    (item) => Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 8.0),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(item.name,
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyLarge
+                                                        ?.copyWith(
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold)),
+                                                Text("Qty: ${item.quantity}",
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyMedium),
+                                              ],
+                                            ),
+                                          ),
+                                          Text(
+                                              "\$${(item.price * item.quantity).toStringAsFixed(2)}",
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyLarge
+                                                  ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildPriceBreakdown(
+                        context, subtotal, delivery, tax, total),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                _buildSection(
-                  context,
-                  title: "Delivery Details",
-                  icon: Icons.home_outlined,
-                  content: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Delivery Address",
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyLarge
-                              ?.copyWith(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 4),
-                      Text(deliveryAddress,
-                          style: Theme.of(context).textTheme.bodyLarge),
-                    ],
-                  ),
+              ),
+              bottomNavigationBar: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: PrimaryButton(
+                  text: "Confirm Pickup",
+                  onPressed: () {},
                 ),
-                const SizedBox(height: 16),
-                _buildSection(context,
-                    title: "Selected Items",
-                    icon: Icons.checkroom_outlined,
-                    content: ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text("Suits",
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyLarge
-                              ?.copyWith(fontWeight: FontWeight.bold)),
-                      subtitle: Text("Qty: 1 • Press only",
-                          style: Theme.of(context).textTheme.bodyMedium),
-                      trailing: Text("\$14.00",
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyLarge
-                              ?.copyWith(fontWeight: FontWeight.bold)),
-                    )),
-                const SizedBox(height: 16),
-                _buildPriceBreakdown(context),
-              ],
+              ),
             ),
           ),
-          bottomNavigationBar: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: PrimaryButton(
-              text: "Confirm Pickup",
-              onPressed: () {},
-            ),
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -140,7 +200,8 @@ class OrderSummaryScreen extends StatelessWidget {
   }
 
   // Helper widget for the price breakdown
-  Widget _buildPriceBreakdown(BuildContext context) {
+  Widget _buildPriceBreakdown(BuildContext context, double subtotal,
+      double delivery, double tax, double total) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -152,14 +213,18 @@ class OrderSummaryScreen extends StatelessWidget {
             Text("Price Breakdown",
                 style: Theme.of(context).textTheme.titleLarge),
             const Divider(height: 24),
-            _buildPriceRow(context, label: "1x Suit", price: "\$12.00"),
-            _buildPriceRow(context, label: "Press only", price: "\$2.00"),
             _buildPriceRow(context,
-                label: "Pickup & Delivery", price: "\$3.99"),
-            _buildPriceRow(context, label: "Tax", price: "\$1.44"),
+                label: "Subtotal", price: "\$${subtotal.toStringAsFixed(2)}"),
+            _buildPriceRow(context,
+                label: "Pickup & Delivery",
+                price: "\$${delivery.toStringAsFixed(2)}"),
+            _buildPriceRow(context,
+                label: "Tax", price: "\$${tax.toStringAsFixed(2)}"),
             const Divider(height: 24),
             _buildPriceRow(context,
-                label: "Total", price: "\$19.43", isTotal: true),
+                label: "Total",
+                price: "\$${total.toStringAsFixed(2)}",
+                isTotal: true),
           ],
         ),
       ),

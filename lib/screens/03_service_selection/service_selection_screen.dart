@@ -1,8 +1,10 @@
 // Purpose: UI for Step 3: Selecting items and add-ons.
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/service_item.dart';
 import '../../repositories/mock_service_repository.dart';
 import '../../widgets/common/primary_button.dart';
+import '../../state/order_provider.dart';
 
 class ServiceSelectionScreen extends StatefulWidget {
   final VoidCallback onNext;
@@ -113,7 +115,28 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
             padding: const EdgeInsets.all(16.0),
             child: PrimaryButton(
               text: "Continue",
-              onPressed: widget.onNext,
+              onPressed: () async {
+                final orderProvider =
+                    Provider.of<OrderProvider>(context, listen: false);
+
+                // Get the services and create the selected list
+                final services = await _servicesFuture;
+                final selectedServices = services.where((service) {
+                  final quantity = _itemQuantities[service.id] ?? 0;
+                  return quantity > 0;
+                }).map((service) {
+                  // Important: Create a new instance with the correct quantity
+                  return ServiceItem(
+                    id: service.id,
+                    name: service.name,
+                    price: service.price,
+                    quantity: _itemQuantities[service.id] ?? 0,
+                  );
+                }).toList();
+
+                orderProvider.setSelectedServices(selectedServices);
+                widget.onNext();
+              },
             ),
           ),
         ),

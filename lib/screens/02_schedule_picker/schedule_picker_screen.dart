@@ -1,8 +1,10 @@
 // Purpose: UI for Step 2: Date & Time Selection.
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/schedule_slot.dart';
 import '../../repositories/mock_schedule_repository.dart';
 import '../../widgets/common/primary_button.dart';
+import '../../state/order_provider.dart';
 
 class SchedulePickerScreen extends StatefulWidget {
   final VoidCallback onNext;
@@ -122,7 +124,14 @@ class _SchedulePickerScreenState extends State<SchedulePickerScreen> {
             padding: const EdgeInsets.all(16.0),
             child: PrimaryButton(
               text: "Continue",
-              onPressed: _selectedSlot != null ? widget.onNext : null,
+              onPressed: _selectedSlot != null
+                  ? () {
+                      final orderProvider =
+                          Provider.of<OrderProvider>(context, listen: false);
+                      orderProvider.setSchedule(_selectedSlot!);
+                      widget.onNext();
+                    }
+                  : null,
             ),
           ),
         ),
