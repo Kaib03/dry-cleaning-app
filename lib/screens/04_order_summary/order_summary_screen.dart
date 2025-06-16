@@ -30,15 +30,23 @@ class OrderSummaryScreen extends StatelessWidget {
                   content: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Pickup Address",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text("Pickup Address",
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyLarge
+                              ?.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 4),
-                      const Text(pickupAddress),
+                      Text(pickupAddress,
+                          style: Theme.of(context).textTheme.bodyLarge),
                       const SizedBox(height: 16),
-                      const Text("Pickup Date & Time",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text("Pickup Date & Time",
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyLarge
+                              ?.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 4),
-                      const Text(pickupTime),
+                      Text(pickupTime,
+                          style: Theme.of(context).textTheme.bodyLarge),
                     ],
                   ),
                 ),
@@ -50,10 +58,14 @@ class OrderSummaryScreen extends StatelessWidget {
                   content: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Delivery Address",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text("Delivery Address",
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyLarge
+                              ?.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 4),
-                      const Text(deliveryAddress),
+                      Text(deliveryAddress,
+                          style: Theme.of(context).textTheme.bodyLarge),
                     ],
                   ),
                 ),
@@ -61,12 +73,20 @@ class OrderSummaryScreen extends StatelessWidget {
                 _buildSection(context,
                     title: "Selected Items",
                     icon: Icons.checkroom_outlined,
-                    content: const ListTile(
+                    content: ListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: Text("Suits"),
-                      subtitle: Text("Qty: 1 • Press only"),
+                      title: Text("Suits",
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyLarge
+                              ?.copyWith(fontWeight: FontWeight.bold)),
+                      subtitle: Text("Qty: 1 • Press only",
+                          style: Theme.of(context).textTheme.bodyMedium),
                       trailing: Text("\$14.00",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyLarge
+                              ?.copyWith(fontWeight: FontWeight.bold)),
                     )),
                 const SizedBox(height: 16),
                 _buildPriceBreakdown(context),
