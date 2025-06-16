@@ -6,7 +6,7 @@ import 'app_localizations.dart';
 
 import 'config/theme.dart';
 import 'state/order_provider.dart';
-import 'screens/01_address_entry/address_entry_screen.dart';
+import 'screens/02_schedule_picker/schedule_picker_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
             Locale('es', ''), // Spanish, no country code
             Locale('en', ''), // English, no country code
           ],
-          home: const AddressEntryScreen()),
+          home: const SchedulePickerScreen()),
     );
   }
 }
