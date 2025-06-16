@@ -18,10 +18,28 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
   late Future<List<UserAddress>> _recentAddressesFuture;
   final _repository = MockUserAddressRepository();
 
+  // TextEditingControllers for form fields
+  final _pickupStreetController = TextEditingController();
+  final _pickupAptController = TextEditingController();
+  final _pickupCityController = TextEditingController();
+  final _pickupZipController = TextEditingController();
+
+  // State for delivery address toggle
+  bool _isSameAsPickup = true;
+
   @override
   void initState() {
     super.initState();
     _recentAddressesFuture = _repository.getRecentAddresses();
+  }
+
+  @override
+  void dispose() {
+    _pickupStreetController.dispose();
+    _pickupAptController.dispose();
+    _pickupCityController.dispose();
+    _pickupZipController.dispose();
+    super.dispose();
   }
 
   @override
@@ -41,15 +59,19 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
             Text("Street Address",
                 style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
-            const TextField(
-                decoration: InputDecoration(
-                    border: OutlineInputBorder(), hintText: "123 Main Street")),
+            TextField(
+              controller: _pickupStreetController, // Add this
+              decoration: InputDecoration(
+                  border: OutlineInputBorder(), hintText: "123 Main Street"),
+            ),
             const SizedBox(height: 16),
             Text("Apt/Unit", style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
-            const TextField(
-                decoration: InputDecoration(
-                    border: OutlineInputBorder(), hintText: "Apt 4B")),
+            TextField(
+              controller: _pickupAptController, // Add this
+              decoration: InputDecoration(
+                  border: OutlineInputBorder(), hintText: "Apt 4B"),
+            ),
             const SizedBox(height: 24),
 
             // Recent Addresses Section
@@ -75,18 +97,65 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
                   itemCount: addresses.length,
                   itemBuilder: (context, index) {
                     final address = addresses[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: ListTile(
-                        leading: const Icon(Icons.history),
-                        title: Text(address.street),
-                        subtitle: Text("${address.city}, ${address.zipCode}"),
+                    return GestureDetector(
+                      // Wrap the Card
+                      onTap: () {
+                        setState(() {
+                          // A simplified split for this mock data
+                          final parts = address.street.split(',');
+                          _pickupStreetController.text =
+                              parts.isNotEmpty ? parts[0].trim() : '';
+                          _pickupAptController.text =
+                              parts.length > 1 ? parts[1].trim() : '';
+                          _pickupCityController.text = address.city;
+                          _pickupZipController.text = address.zipCode;
+                        });
+                      },
+                      child: Card(
+                        // The existing Card
+                        margin: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: ListTile(
+                          leading: const Icon(Icons.history),
+                          title: Text(address.street),
+                          subtitle: Text("${address.city}, ${address.zipCode}"),
+                        ),
                       ),
                     );
                   },
                 );
               },
             ),
+            const SizedBox(height: 24),
+            SwitchListTile(
+              title: Text("Delivery address is the same as pickup",
+                  style: Theme.of(context).textTheme.titleMedium),
+              value: _isSameAsPickup,
+              onChanged: (bool value) {
+                setState(() {
+                  _isSameAsPickup = value;
+                });
+              },
+            ),
+
+            // Hidden delivery form
+            if (!_isSameAsPickup)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 16),
+                  Text("Delivery Address",
+                      style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: 16),
+                  Text("Street Address",
+                      style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 8),
+                  const TextField(
+                      decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          hintText: "Enter delivery address")),
+                  // We can add more delivery fields here later
+                ],
+              ),
           ],
         ),
       ),
