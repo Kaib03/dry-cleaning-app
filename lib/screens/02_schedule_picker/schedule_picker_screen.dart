@@ -1,6 +1,7 @@
 // Purpose: UI for Step 2: Date & Time Selection.
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../app_localizations.dart';
 import '../../models/schedule_slot.dart';
 import '../../repositories/mock_schedule_repository.dart';
 import '../../widgets/common/primary_button.dart';
@@ -39,17 +40,19 @@ class _SchedulePickerScreenState extends State<SchedulePickerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 500),
         child: Scaffold(
-          appBar: AppBar(title: const Text("Select Pickup Schedule")),
+          appBar: AppBar(title: Text(localizations.schedule_pickup_title)),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Select Pickup Date",
+                Text(localizations.select_pickup_date,
                     style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 8),
                 Card(
@@ -62,7 +65,7 @@ class _SchedulePickerScreenState extends State<SchedulePickerScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Text("Select Time Slot",
+                Text(localizations.select_time_slot,
                     style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 8),
                 FutureBuilder<List<ScheduleSlot>>(
@@ -123,7 +126,7 @@ class _SchedulePickerScreenState extends State<SchedulePickerScreen> {
           bottomNavigationBar: Padding(
             padding: const EdgeInsets.all(16.0),
             child: PrimaryButton(
-              text: "Continue",
+              text: localizations.continue_button,
               onPressed: _selectedSlot != null
                   ? () {
                       final orderProvider =

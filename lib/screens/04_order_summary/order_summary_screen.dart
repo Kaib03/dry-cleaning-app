@@ -1,6 +1,7 @@
 // Purpose: UI for the final step: Reviewing and confirming the order.
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../app_localizations.dart';
 import '../../widgets/common/primary_button.dart';
 import '../../state/order_provider.dart';
 
@@ -9,6 +10,8 @@ class OrderSummaryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+
     return Consumer<OrderProvider>(
       builder: (context, order, child) {
         // Format the data from the provider
@@ -40,7 +43,7 @@ class OrderSummaryScreen extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: 500),
             child: Scaffold(
               appBar: AppBar(
-                title: const Text("Order Summary"),
+                title: Text(localizations.order_summary_title),
               ),
               body: SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),

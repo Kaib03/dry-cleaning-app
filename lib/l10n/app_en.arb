@@ -1,5 +1,15 @@
 {
     "@@locale": "en",
     "continue_button": "Continue",
-    "pickup_address_title": "Pickup Address"
+    "pickup_address_title": "Pickup Address",
+    "street_address": "Street Address",
+    "apt_unit": "Apt/Unit",
+    "recent_addresses": "Recent Addresses",
+    "delivery_same_as_pickup": "Delivery address is the same as pickup",
+    "delivery_address": "Delivery Address",
+    "schedule_pickup_title": "Select Pickup Schedule",
+    "select_pickup_date": "Select Pickup Date",
+    "select_time_slot": "Select Time Slot",
+    "select_services_title": "Select Services",
+    "order_summary_title": "Order Summary"
 } 

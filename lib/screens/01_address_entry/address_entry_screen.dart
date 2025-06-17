@@ -63,7 +63,7 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Basic Form Fields
-                Text("Street Address",
+                Text(localizations.street_address,
                     style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),
                 TextField(
@@ -73,7 +73,7 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
                       hintText: "123 Main Street"),
                 ),
                 const SizedBox(height: 16),
-                Text("Apt/Unit",
+                Text(localizations.apt_unit,
                     style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),
                 TextField(
@@ -84,7 +84,7 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
                 const SizedBox(height: 24),
 
                 // Recent Addresses Section
-                Text("Recent Addresses",
+                Text(localizations.recent_addresses,
                     style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 8),
                 FutureBuilder<List<UserAddress>>(
@@ -138,7 +138,7 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
                 ),
                 const SizedBox(height: 24),
                 SwitchListTile(
-                  title: Text("Delivery address is the same as pickup",
+                  title: Text(localizations.delivery_same_as_pickup,
                       style: Theme.of(context).textTheme.titleMedium),
                   value: _isSameAsPickup,
                   onChanged: (bool value) {
@@ -154,10 +154,10 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 16),
-                      Text("Delivery Address",
+                      Text(localizations.delivery_address,
                           style: Theme.of(context).textTheme.titleLarge),
                       const SizedBox(height: 16),
-                      Text("Street Address",
+                      Text(localizations.street_address,
                           style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 8),
                       const TextField(
@@ -165,7 +165,7 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
                               border: OutlineInputBorder(),
                               hintText: "Enter delivery address")),
                       const SizedBox(height: 16),
-                      Text("Apt/Unit",
+                      Text(localizations.apt_unit,
                           style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 8),
                       TextField(

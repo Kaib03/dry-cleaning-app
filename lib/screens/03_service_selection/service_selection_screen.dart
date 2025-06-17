@@ -1,6 +1,7 @@
 // Purpose: UI for Step 3: Selecting items and add-ons.
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../app_localizations.dart';
 import '../../models/service_item.dart';
 import '../../repositories/mock_service_repository.dart';
 import '../../widgets/common/primary_button.dart';
@@ -43,11 +44,13 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 500),
         child: Scaffold(
-          appBar: AppBar(title: const Text("Select Services")),
+          appBar: AppBar(title: Text(localizations.select_services_title)),
           body: FutureBuilder<List<ServiceItem>>(
             future: _servicesFuture,
             builder: (context, snapshot) {
@@ -114,7 +117,7 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
           bottomNavigationBar: Padding(
             padding: const EdgeInsets.all(16.0),
             child: PrimaryButton(
-              text: "Continue",
+              text: localizations.continue_button,
               onPressed: () async {
                 final orderProvider =
                     Provider.of<OrderProvider>(context, listen: false);

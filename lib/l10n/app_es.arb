@@ -1,5 +1,15 @@
 {
     "@@locale": "es",
     "continue_button": "Continuar",
-    "pickup_address_title": "Dirección de Recogida"
+    "pickup_address_title": "Dirección de Recogida",
+    "street_address": "Dirección",
+    "apt_unit": "Piso/Unidad",
+    "recent_addresses": "Direcciones Recientes",
+    "delivery_same_as_pickup": "La dirección de entrega es la misma",
+    "delivery_address": "Dirección de Entrega",
+    "schedule_pickup_title": "Seleccionar Horario de Recogida",
+    "select_pickup_date": "Seleccionar Fecha de Recogida",
+    "select_time_slot": "Seleccionar Hora",
+    "select_services_title": "Seleccionar Servicios",
+    "order_summary_title": "Resumen del Pedido"
 } 
