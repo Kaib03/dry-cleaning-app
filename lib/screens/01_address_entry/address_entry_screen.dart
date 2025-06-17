@@ -58,20 +58,57 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
           appBar: AppBar(
             title: Text(localizations.pickup_address_title),
             actions: [
-              IconButton(
-                icon: const Icon(Icons.language),
+              // Replace the old IconButton with this TextButton
+              TextButton(
                 onPressed: () {
                   final provider =
                       Provider.of<LocaleProvider>(context, listen: false);
                   final currentLocale = provider.locale;
 
-                  // Toggle between Spanish and English
                   if (currentLocale.languageCode == 'es') {
                     provider.setLocale(const Locale('en'));
                   } else {
                     provider.setLocale(const Locale('es'));
                   }
                 },
+                child: Consumer<LocaleProvider>(
+                  builder: (context, localeProvider, child) {
+                    final isSpanish =
+                        localeProvider.locale.languageCode == 'es';
+                    // Get the correct color for text/icons on the AppBar from the theme
+                    final Color textColor =
+                        Theme.of(context).appBarTheme.iconTheme?.color ??
+                            Colors.black;
+
+                    return Row(
+                      children: [
+                        Text(
+                          'EN',
+                          style: TextStyle(
+                            color: textColor,
+                            fontWeight:
+                                isSpanish ? FontWeight.normal : FontWeight.bold,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                          child: Text(
+                            '/',
+                            style: TextStyle(color: textColor.withOpacity(0.7)),
+                          ),
+                        ),
+                        Text(
+                          'ES',
+                          style: TextStyle(
+                            color: textColor,
+                            fontWeight:
+                                isSpanish ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
             ],
           ),
