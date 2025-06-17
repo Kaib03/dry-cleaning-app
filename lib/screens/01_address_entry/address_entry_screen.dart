@@ -6,6 +6,7 @@ import '../../models/user_address.dart';
 import '../../repositories/mock_user_address_repository.dart';
 import '../../widgets/common/primary_button.dart';
 import '../../state/order_provider.dart';
+import '../../state/locale_provider.dart';
 
 class AddressEntryScreen extends StatefulWidget {
   final VoidCallback onNext; // Add this
@@ -56,6 +57,23 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
         child: Scaffold(
           appBar: AppBar(
             title: Text(localizations.pickup_address_title),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.language),
+                onPressed: () {
+                  final provider =
+                      Provider.of<LocaleProvider>(context, listen: false);
+                  final currentLocale = provider.locale;
+
+                  // Toggle between Spanish and English
+                  if (currentLocale.languageCode == 'es') {
+                    provider.setLocale(const Locale('en'));
+                  } else {
+                    provider.setLocale(const Locale('es'));
+                  }
+                },
+              ),
+            ],
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
@@ -163,7 +181,7 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
                       const TextField(
                           decoration: InputDecoration(
                               border: OutlineInputBorder(),
-                              hintText: "Enter delivery address")),
+                              hintText: "123 Main Street")),
                       const SizedBox(height: 16),
                       Text(localizations.apt_unit,
                           style: Theme.of(context).textTheme.titleMedium),
@@ -171,8 +189,7 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
                       TextField(
                         controller: _deliveryAptController,
                         decoration: InputDecoration(
-                            border: OutlineInputBorder(),
-                            hintText: "Enter Apt/Unit"),
+                            border: OutlineInputBorder(), hintText: "Apt 4B"),
                       ),
                     ],
                   ),

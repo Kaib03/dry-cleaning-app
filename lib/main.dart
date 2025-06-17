@@ -6,6 +6,7 @@ import 'app_localizations.dart';
 
 import 'config/theme.dart';
 import 'state/order_provider.dart';
+import 'state/locale_provider.dart';
 import 'screens/main_flow_screen.dart';
 
 void main() {
@@ -17,23 +18,31 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => OrderProvider(),
-      child: MaterialApp(
-          title: 'Dry Cleaning App',
-          theme: AppTheme.lightTheme,
-          locale: const Locale('es'), // Set Spanish as the default
-          localizationsDelegates: [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: [
-            Locale('es', ''), // Spanish, no country code
-            Locale('en', ''), // English, no country code
-          ],
-          home: const MainFlowScreen()),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => OrderProvider()),
+        ChangeNotifierProvider(create: (context) => LocaleProvider()),
+      ],
+      child: Consumer<LocaleProvider>(
+        builder: (context, localeProvider, child) {
+          return MaterialApp(
+            title: 'Dry Cleaning App',
+            theme: AppTheme.lightTheme,
+            locale: localeProvider.locale, // Use the provider's locale
+            localizationsDelegates: [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: [
+              const Locale('es', ''), // Spanish
+              const Locale('en', ''), // English
+            ],
+            home: const MainFlowScreen(),
+          );
+        },
+      ),
     );
   }
 }
