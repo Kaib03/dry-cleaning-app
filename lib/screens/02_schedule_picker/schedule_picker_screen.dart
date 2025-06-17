@@ -9,8 +9,10 @@ import '../../state/order_provider.dart';
 
 class SchedulePickerScreen extends StatefulWidget {
   final VoidCallback onNext;
+  final VoidCallback onBack;
 
-  const SchedulePickerScreen({Key? key, required this.onNext})
+  const SchedulePickerScreen(
+      {Key? key, required this.onNext, required this.onBack})
       : super(key: key);
 
   @override
@@ -46,7 +48,13 @@ class _SchedulePickerScreenState extends State<SchedulePickerScreen> {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 500),
         child: Scaffold(
-          appBar: AppBar(title: Text(localizations.schedule_pickup_title)),
+          appBar: AppBar(
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: widget.onBack,
+            ),
+            title: Text(localizations.schedule_pickup_title),
+          ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(

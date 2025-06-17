@@ -19,16 +19,28 @@ class _MainFlowScreenState extends State<MainFlowScreen> {
   void initState() {
     super.initState();
     _screens = [
-      AddressEntryScreen(onNext: () => _navigateToPage(1)),
-      SchedulePickerScreen(onNext: () => _navigateToPage(2)),
-      ServiceSelectionScreen(onNext: () => _navigateToPage(3)),
-      OrderSummaryScreen(),
+      AddressEntryScreen(
+          onNext: () =>
+              _navigateToPage(1)), // First screen doesn't get a back button
+      SchedulePickerScreen(
+          onNext: () => _navigateToPage(2), onBack: _navigateBack),
+      ServiceSelectionScreen(
+          onNext: () => _navigateToPage(3), onBack: _navigateBack),
+      OrderSummaryScreen(
+          onBack: _navigateBack), // Summary screen only needs a back button
     ];
   }
 
   void _navigateToPage(int page) {
     _pageController.animateToPage(
       page,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  void _navigateBack() {
+    _pageController.previousPage(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );

@@ -6,7 +6,9 @@ import '../../widgets/common/primary_button.dart';
 import '../../state/order_provider.dart';
 
 class OrderSummaryScreen extends StatelessWidget {
-  const OrderSummaryScreen({Key? key}) : super(key: key);
+  final VoidCallback onBack;
+
+  const OrderSummaryScreen({Key? key, required this.onBack}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +45,10 @@ class OrderSummaryScreen extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: 500),
             child: Scaffold(
               appBar: AppBar(
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: onBack,
+                ),
                 title: Text(localizations.order_summary_title),
               ),
               body: SingleChildScrollView(

@@ -9,8 +9,10 @@ import '../../state/order_provider.dart';
 
 class ServiceSelectionScreen extends StatefulWidget {
   final VoidCallback onNext;
+  final VoidCallback onBack;
 
-  const ServiceSelectionScreen({Key? key, required this.onNext})
+  const ServiceSelectionScreen(
+      {Key? key, required this.onNext, required this.onBack})
       : super(key: key);
 
   @override
@@ -50,7 +52,13 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 500),
         child: Scaffold(
-          appBar: AppBar(title: Text(localizations.select_services_title)),
+          appBar: AppBar(
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: widget.onBack,
+            ),
+            title: Text(localizations.select_services_title),
+          ),
           body: FutureBuilder<List<ServiceItem>>(
             future: _servicesFuture,
             builder: (context, snapshot) {
