@@ -4,16 +4,16 @@ import 'package:provider/provider.dart';
 import '../../app_localizations.dart';
 import '../../widgets/common/primary_button.dart';
 import '../../state/order_provider.dart';
+import 'package:intl/intl.dart';
 
 class OrderSummaryScreen extends StatelessWidget {
   final VoidCallback onBack;
 
-  const OrderSummaryScreen({Key? key, required this.onBack}) : super(key: key);
+  const OrderSummaryScreen({super.key, required this.onBack});
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
-
     return Consumer<OrderProvider>(
       builder: (context, order, child) {
         // Format the data from the provider
@@ -25,6 +25,10 @@ class OrderSummaryScreen extends StatelessWidget {
             ? (order.deliveryAddress == order.pickupAddress
                 ? 'Same as pickup address'
                 : '${order.deliveryAddress!.street}${(order.deliveryAddress!.apartment?.isNotEmpty ?? false) ? ', ${order.deliveryAddress!.apartment}' : ''}\n${order.deliveryAddress!.city}, ${order.deliveryAddress!.zipCode}')
+            : 'Not selected';
+
+        final pickupDate = order.scheduleSlot != null
+            ? DateFormat('EEEE, MMMM d').format(order.scheduleSlot!.date)
             : 'Not selected';
 
         final pickupTime = order.scheduleSlot != null
@@ -46,117 +50,81 @@ class OrderSummaryScreen extends StatelessWidget {
             child: Scaffold(
               appBar: AppBar(
                 leading: IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: onBack,
-                ),
+                    icon: const Icon(Icons.arrow_back), onPressed: onBack),
                 title: Text(localizations.order_summary_title),
               ),
               body: SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSection(
-                      context,
-                      title: "Pickup Details",
-                      icon: Icons.location_on_outlined,
-                      content: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Pickup Address",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge
-                                  ?.copyWith(fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 4),
-                          Text(pickupAddress,
-                              style: Theme.of(context).textTheme.bodyLarge),
-                          const SizedBox(height: 16),
-                          Text("Pickup Date & Time",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge
-                                  ?.copyWith(fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 4),
-                          Text(pickupTime,
-                              style: Theme.of(context).textTheme.bodyLarge),
-                        ],
-                      ),
+                    // --- Pickup & Delivery Section ---
+                    _buildSectionHeader(context,
+                        icon: Icons.local_shipping_outlined,
+                        title: "Pickup & Delivery"),
+                    const SizedBox(height: 8),
+                    _buildInfoCard(
+                      children: [
+                        _buildInfoRow(context,
+                            label: "Pickup Address", value: pickupAddress),
+                        const Divider(height: 24),
+                        _buildInfoRow(context,
+                            label: "Delivery Address", value: deliveryAddress),
+                        const Divider(height: 24),
+                        _buildInfoRow(context,
+                            label: "Pickup Date", value: pickupDate),
+                        const Divider(height: 24),
+                        _buildInfoRow(context,
+                            label: "Pickup Time", value: pickupTime),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    _buildSection(
-                      context,
-                      title: "Delivery Details",
-                      icon: Icons.home_outlined,
-                      content: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Delivery Address",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge
-                                  ?.copyWith(fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 4),
-                          Text(deliveryAddress,
-                              style: Theme.of(context).textTheme.bodyLarge),
-                        ],
-                      ),
+                    const SizedBox(height: 24),
+
+                    // --- Order Details Section ---
+                    _buildSectionHeader(context,
+                        icon: Icons.list_alt_outlined, title: "Order Details"),
+                    const SizedBox(height: 8),
+                    _buildInfoCard(
+                      children: [
+                        if (order.selectedItems.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16.0),
+                            child: Text("No items selected."),
+                          )
+                        else
+                          ...order.selectedItems.map((item) => _buildInfoRow(
+                              context,
+                              label: "${item.quantity}x ${item.name}",
+                              value:
+                                  "\$${(item.price * item.quantity).toStringAsFixed(2)}")),
+                        const Divider(height: 24),
+                        _buildInfoRow(context,
+                            label: "Special Instructions", value: "None"),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    _buildSection(
-                      context,
-                      title: "Selected Items",
-                      icon: Icons.checkroom_outlined,
-                      content: order.selectedItems.isEmpty
-                          ? Text("No items selected",
-                              style: Theme.of(context).textTheme.bodyLarge)
-                          : Column(
-                              children: order.selectedItems
-                                  .map(
-                                    (item) => Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 8.0),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(item.name,
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .bodyLarge
-                                                        ?.copyWith(
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .bold)),
-                                                Text("Qty: ${item.quantity}",
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .bodyMedium),
-                                              ],
-                                            ),
-                                          ),
-                                          Text(
-                                              "\$${(item.price * item.quantity).toStringAsFixed(2)}",
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyLarge
-                                                  ?.copyWith(
-                                                      fontWeight:
-                                                          FontWeight.bold)),
-                                        ],
-                                      ),
-                                    ),
-                                  )
-                                  .toList(),
-                            ),
+                    const SizedBox(height: 24),
+
+                    // --- Payment Summary Section ---
+                    _buildSectionHeader(context,
+                        icon: Icons.credit_card_outlined,
+                        title: "Payment Summary"),
+                    const SizedBox(height: 8),
+                    _buildInfoCard(
+                      children: [
+                        _buildPriceRow(context, "Subtotal",
+                            "\$${subtotal.toStringAsFixed(2)}"),
+                        const SizedBox(height: 8),
+                        _buildPriceRow(context, "Pickup & Delivery",
+                            "\$${delivery.toStringAsFixed(2)}"),
+                        const SizedBox(height: 8),
+                        _buildPriceRow(
+                            context, "Tax", "\$${tax.toStringAsFixed(2)}"),
+                        const Divider(height: 24),
+                        _buildPriceRow(
+                            context, "Total", "\$${total.toStringAsFixed(2)}",
+                            isTotal: true),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    _buildPriceBreakdown(
-                        context, subtotal, delivery, tax, total),
                   ],
                 ),
               ),
@@ -174,90 +142,89 @@ class OrderSummaryScreen extends StatelessWidget {
     );
   }
 
-  // Helper widget for each section card
-  Widget _buildSection(BuildContext context,
-      {required String title,
-      required IconData icon,
-      required Widget content}) {
+  // --- NEW HELPER WIDGETS ---
+
+  Widget _buildSectionHeader(BuildContext context,
+      {required IconData icon, required String title}) {
+    return Row(
+      children: [
+        Icon(icon, color: Theme.of(context).primaryColor, size: 20),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: Theme.of(context)
+              .textTheme
+              .titleLarge
+              ?.copyWith(fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoCard({required List<Widget> children}) {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        side: BorderSide(color: Colors.grey.shade300, width: 1),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(icon, color: Theme.of(context).primaryColor),
-                    const SizedBox(width: 8),
-                    Text(title, style: Theme.of(context).textTheme.titleLarge),
-                  ],
-                ),
-                TextButton(onPressed: () {}, child: const Text("Edit")),
-              ],
-            ),
-            const Divider(height: 24),
-            content,
-          ],
+          children: children,
         ),
       ),
     );
   }
 
-  // Helper widget for the price breakdown
-  Widget _buildPriceBreakdown(BuildContext context, double subtotal,
-      double delivery, double tax, double total) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Price Breakdown",
-                style: Theme.of(context).textTheme.titleLarge),
-            const Divider(height: 24),
-            _buildPriceRow(context,
-                label: "Subtotal", price: "\$${subtotal.toStringAsFixed(2)}"),
-            _buildPriceRow(context,
-                label: "Pickup & Delivery",
-                price: "\$${delivery.toStringAsFixed(2)}"),
-            _buildPriceRow(context,
-                label: "Tax", price: "\$${tax.toStringAsFixed(2)}"),
-            const Divider(height: 24),
-            _buildPriceRow(context,
-                label: "Total",
-                price: "\$${total.toStringAsFixed(2)}",
-                isTotal: true),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Helper widget for a single row in the price breakdown
-  Widget _buildPriceRow(BuildContext context,
-      {required String label, required String price, bool isTotal = false}) {
-    final style = isTotal
-        ? Theme.of(context)
-            .textTheme
-            .titleLarge
-            ?.copyWith(fontWeight: FontWeight.bold)
-        : Theme.of(context).textTheme.bodyLarge;
+  Widget _buildInfoRow(BuildContext context,
+      {required String label, required String value}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: style),
-          Text(price, style: style),
+          Expanded(
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  value,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.right,
+                ),
+              ],
+            ),
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildPriceRow(BuildContext context, String label, String price,
+      {bool isTotal = false}) {
+    final textTheme = Theme.of(context).textTheme;
+    final style = isTotal
+        ? textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)
+        : textTheme.bodyLarge;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: style),
+        Text(price, style: style),
+      ],
     );
   }
 }

@@ -11,6 +11,7 @@ class AppTheme {
   static final ThemeData lightTheme = ThemeData(
     scaffoldBackgroundColor: lightBackgroundColor,
     primaryColor: primaryColor,
+    colorScheme: ColorScheme.fromSeed(seedColor: primaryColor),
     fontFamily: 'Inter', // A good modern, clean font
     appBarTheme: AppBarTheme(
       backgroundColor: lightBackgroundColor,

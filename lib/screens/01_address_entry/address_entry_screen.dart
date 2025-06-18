@@ -5,13 +5,15 @@ import '../../app_localizations.dart';
 import '../../models/user_address.dart';
 import '../../repositories/mock_user_address_repository.dart';
 import '../../widgets/common/primary_button.dart';
+import '../../widgets/common/step_progress_bar.dart';
 import '../../state/order_provider.dart';
 import '../../state/locale_provider.dart';
 
 class AddressEntryScreen extends StatefulWidget {
-  final VoidCallback onNext; // Add this
+  final VoidCallback onNext;
+  final int currentStep;
   const AddressEntryScreen(
-      {super.key, required this.onNext}); // Update constructor
+      {super.key, required this.currentStep, required this.onNext});
 
   @override
   _AddressEntryScreenState createState() => _AddressEntryScreenState();
@@ -112,126 +114,138 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
               ),
             ],
           ),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Basic Form Fields
-                Text(localizations.street_address,
-                    style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _pickupStreetController, // Add this
-                  decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: "123 Main Street"),
-                ),
-                const SizedBox(height: 16),
-                Text(localizations.apt_unit,
-                    style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _pickupAptController, // Add this
-                  decoration: InputDecoration(
-                      border: OutlineInputBorder(), hintText: "Apt 4B"),
-                ),
-                const SizedBox(height: 24),
-
-                // Recent Addresses Section
-                Text(localizations.recent_addresses,
-                    style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 8),
-                FutureBuilder<List<UserAddress>>(
-                  future: _recentAddressesFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (snapshot.hasError) {
-                      return const Center(
-                          child: Text("Could not load addresses."));
-                    }
-                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Center(child: Text("No recent addresses."));
-                    }
-                    final addresses = snapshot.data!;
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: addresses.length,
-                      itemBuilder: (context, index) {
-                        final address = addresses[index];
-                        return GestureDetector(
-                          // Wrap the Card
-                          onTap: () {
-                            setState(() {
-                              // A simplified split for this mock data
-                              final parts = address.street.split(',');
-                              _pickupStreetController.text =
-                                  parts.isNotEmpty ? parts[0].trim() : '';
-                              _pickupAptController.text =
-                                  parts.length > 1 ? parts[1].trim() : '';
-                              _pickupCityController.text = address.city;
-                              _pickupZipController.text = address.zipCode;
-                            });
-                          },
-                          child: Card(
-                            // The existing Card
-                            margin: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: ListTile(
-                              leading: const Icon(Icons.history),
-                              title: Text(address.street),
-                              subtitle:
-                                  Text("${address.city}, ${address.zipCode}"),
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
-                const SizedBox(height: 24),
-                SwitchListTile(
-                  title: Text(localizations.delivery_same_as_pickup,
-                      style: Theme.of(context).textTheme.titleMedium),
-                  value: _isSameAsPickup,
-                  onChanged: (bool value) {
-                    setState(() {
-                      _isSameAsPickup = value;
-                    });
-                  },
-                ),
-
-                // Hidden delivery form
-                if (!_isSameAsPickup)
-                  Column(
+          body: Column(
+            children: [
+              StepProgressBar(currentStep: widget.currentStep, totalSteps: 4),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 16),
-                      Text(localizations.delivery_address,
-                          style: Theme.of(context).textTheme.titleLarge),
-                      const SizedBox(height: 16),
+                      // Basic Form Fields
                       Text(localizations.street_address,
                           style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 8),
-                      const TextField(
-                          decoration: InputDecoration(
-                              border: OutlineInputBorder(),
-                              hintText: "123 Main Street")),
+                      TextField(
+                        controller: _pickupStreetController, // Add this
+                        decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            hintText: "123 Main Street"),
+                      ),
                       const SizedBox(height: 16),
                       Text(localizations.apt_unit,
                           style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 8),
                       TextField(
-                        controller: _deliveryAptController,
+                        controller: _pickupAptController, // Add this
                         decoration: InputDecoration(
                             border: OutlineInputBorder(), hintText: "Apt 4B"),
                       ),
+                      const SizedBox(height: 24),
+
+                      // Recent Addresses Section
+                      Text(localizations.recent_addresses,
+                          style: Theme.of(context).textTheme.titleLarge),
+                      const SizedBox(height: 8),
+                      FutureBuilder<List<UserAddress>>(
+                        future: _recentAddressesFuture,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+                          if (snapshot.hasError) {
+                            return const Center(
+                                child: Text("Could not load addresses."));
+                          }
+                          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            return const Center(
+                                child: Text("No recent addresses."));
+                          }
+                          final addresses = snapshot.data!;
+                          return ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: addresses.length,
+                            itemBuilder: (context, index) {
+                              final address = addresses[index];
+                              return GestureDetector(
+                                // Wrap the Card
+                                onTap: () {
+                                  setState(() {
+                                    // A simplified split for this mock data
+                                    final parts = address.street.split(',');
+                                    _pickupStreetController.text =
+                                        parts.isNotEmpty ? parts[0].trim() : '';
+                                    _pickupAptController.text =
+                                        parts.length > 1 ? parts[1].trim() : '';
+                                    _pickupCityController.text = address.city;
+                                    _pickupZipController.text = address.zipCode;
+                                  });
+                                },
+                                child: Card(
+                                  // The existing Card
+                                  margin:
+                                      const EdgeInsets.symmetric(vertical: 4.0),
+                                  child: ListTile(
+                                    leading: const Icon(Icons.history),
+                                    title: Text(address.street),
+                                    subtitle: Text(
+                                        "${address.city}, ${address.zipCode}"),
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      SwitchListTile(
+                        title: Text(localizations.delivery_same_as_pickup,
+                            style: Theme.of(context).textTheme.titleMedium),
+                        value: _isSameAsPickup,
+                        onChanged: (bool value) {
+                          setState(() {
+                            _isSameAsPickup = value;
+                          });
+                        },
+                      ),
+
+                      // Hidden delivery form
+                      if (!_isSameAsPickup)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 16),
+                            Text(localizations.delivery_address,
+                                style: Theme.of(context).textTheme.titleLarge),
+                            const SizedBox(height: 16),
+                            Text(localizations.street_address,
+                                style: Theme.of(context).textTheme.titleMedium),
+                            const SizedBox(height: 8),
+                            const TextField(
+                                decoration: InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    hintText: "123 Main Street")),
+                            const SizedBox(height: 16),
+                            Text(localizations.apt_unit,
+                                style: Theme.of(context).textTheme.titleMedium),
+                            const SizedBox(height: 8),
+                            TextField(
+                              controller: _deliveryAptController,
+                              decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  hintText: "Apt 4B"),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
-              ],
-            ),
+                ),
+              ),
+            ],
           ),
           bottomNavigationBar: Padding(
             padding: const EdgeInsets.all(16.0),

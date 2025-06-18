@@ -7,10 +7,10 @@ class StepProgressBar extends StatelessWidget {
   final int totalSteps;
 
   const StepProgressBar({
-    Key? key,
+    super.key,
     required this.currentStep,
     this.totalSteps = 4, // Set a default based on our flow
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
