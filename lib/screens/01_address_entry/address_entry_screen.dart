@@ -1,290 +1,397 @@
 // Purpose: UI for Step 1: Pickup & Delivery Address Entry.
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../app_localizations.dart';
-import '../../models/user_address.dart';
-import '../../repositories/mock_user_address_repository.dart';
-import '../../widgets/common/primary_button.dart';
-import '../../widgets/common/step_progress_bar.dart';
 import '../../state/order_provider.dart';
-import '../../state/locale_provider.dart';
+import '../../models/user_address.dart';
 
 class AddressEntryScreen extends StatefulWidget {
   final VoidCallback onNext;
-  final int currentStep;
-  const AddressEntryScreen(
-      {super.key, required this.currentStep, required this.onNext});
+  final VoidCallback? onValidationChanged;
+
+  const AddressEntryScreen({
+    super.key,
+    required this.onNext,
+    this.onValidationChanged,
+  });
 
   @override
-  _AddressEntryScreenState createState() => _AddressEntryScreenState();
+  State<AddressEntryScreen> createState() => AddressEntryScreenState();
 }
 
-class _AddressEntryScreenState extends State<AddressEntryScreen> {
-  late Future<List<UserAddress>> _recentAddressesFuture;
-  final _repository = MockUserAddressRepository();
+class AddressEntryScreenState extends State<AddressEntryScreen> {
+  final _formKey = GlobalKey<FormState>();
 
-  // TextEditingControllers for form fields
+  // Personal information controllers
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+
+  // Pickup address controllers
   final _pickupStreetController = TextEditingController();
   final _pickupAptController = TextEditingController();
   final _pickupCityController = TextEditingController();
   final _pickupZipController = TextEditingController();
-  final _deliveryAptController = TextEditingController(); // Add this
 
-  // State for delivery address toggle
+  // Delivery address controllers
+  final _deliveryStreetController = TextEditingController();
+  final _deliveryAptController = TextEditingController();
+  final _deliveryCityController = TextEditingController();
+  final _deliveryZipController = TextEditingController();
+
   bool _isSameAsPickup = true;
+  bool _canContinue = false;
 
   @override
   void initState() {
     super.initState();
-    _recentAddressesFuture = _repository.getRecentAddresses();
+
+    // Populate controllers with existing data from OrderProvider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+
+      // Populate personal information if it exists
+      if (orderProvider.firstName != null) {
+        _firstNameController.text = orderProvider.firstName!;
+      }
+      if (orderProvider.lastName != null) {
+        _lastNameController.text = orderProvider.lastName!;
+      }
+      if (orderProvider.phone != null) {
+        _phoneController.text = orderProvider.phone!;
+      }
+      if (orderProvider.email != null) {
+        _emailController.text = orderProvider.email!;
+      }
+
+      // Populate pickup address if it exists
+      if (orderProvider.pickupAddress != null) {
+        final pickup = orderProvider.pickupAddress!;
+        _pickupStreetController.text = pickup.street;
+        _pickupCityController.text = pickup.city;
+        _pickupZipController.text = pickup.zipCode;
+        if (pickup.apartment != null) {
+          _pickupAptController.text = pickup.apartment!;
+        }
+      }
+
+      // Populate delivery address if it exists and is different from pickup
+      if (orderProvider.deliveryAddress != null) {
+        final delivery = orderProvider.deliveryAddress!;
+        if (delivery != orderProvider.pickupAddress) {
+          setState(() {
+            _isSameAsPickup = false;
+          });
+          _deliveryStreetController.text = delivery.street;
+          _deliveryCityController.text = delivery.city;
+          _deliveryZipController.text = delivery.zipCode;
+          if (delivery.apartment != null) {
+            _deliveryAptController.text = delivery.apartment!;
+          }
+        }
+      }
+
+      // Trigger validation after populating
+      _validateForm();
+    });
+
+    // Add listeners for all form fields
+    _firstNameController.addListener(_validateForm);
+    _lastNameController.addListener(_validateForm);
+    _phoneController.addListener(_validateForm);
+    _emailController.addListener(_validateForm);
+    _pickupStreetController.addListener(_validateForm);
+    _pickupCityController.addListener(_validateForm);
+    _pickupZipController.addListener(_validateForm);
+    _deliveryStreetController.addListener(_validateForm);
+    _deliveryCityController.addListener(_validateForm);
+    _deliveryZipController.addListener(_validateForm);
   }
 
   @override
   void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
     _pickupStreetController.dispose();
     _pickupAptController.dispose();
     _pickupCityController.dispose();
     _pickupZipController.dispose();
-    _deliveryAptController.dispose(); // Add this
+    _deliveryStreetController.dispose();
+    _deliveryAptController.dispose();
+    _deliveryCityController.dispose();
+    _deliveryZipController.dispose();
     super.dispose();
+  }
+
+  void _validateForm() {
+    // Manual validation check - include personal info and address fields
+    bool isValid = _firstNameController.text.isNotEmpty &&
+        _lastNameController.text.isNotEmpty &&
+        _phoneController.text.isNotEmpty &&
+        _emailController.text.isNotEmpty &&
+        _pickupStreetController.text.isNotEmpty &&
+        _pickupCityController.text.isNotEmpty &&
+        _pickupZipController.text.isNotEmpty;
+
+    // If delivery address is different, also validate those fields
+    if (!_isSameAsPickup) {
+      isValid = isValid &&
+          _deliveryStreetController.text.isNotEmpty &&
+          _deliveryCityController.text.isNotEmpty &&
+          _deliveryZipController.text.isNotEmpty;
+    }
+
+    if (isValid != _canContinue) {
+      setState(() {
+        _canContinue = isValid;
+      });
+      // Notify parent that validation state changed
+      widget.onValidationChanged?.call();
+    }
+  }
+
+  bool canContinue() {
+    // Check if personal info and pickup address fields are filled
+    bool isValid = _firstNameController.text.isNotEmpty &&
+        _lastNameController.text.isNotEmpty &&
+        _phoneController.text.isNotEmpty &&
+        _emailController.text.isNotEmpty &&
+        _pickupStreetController.text.isNotEmpty &&
+        _pickupCityController.text.isNotEmpty &&
+        _pickupZipController.text.isNotEmpty;
+
+    // If delivery address is different, also check those fields
+    if (!_isSameAsPickup) {
+      isValid = isValid &&
+          _deliveryStreetController.text.isNotEmpty &&
+          _deliveryCityController.text.isNotEmpty &&
+          _deliveryZipController.text.isNotEmpty;
+    }
+
+    return isValid;
+  }
+
+  void submitAddress() {
+    if (_formKey.currentState!.validate()) {
+      final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+
+      // Save personal information
+      orderProvider.setPersonalInfo(
+        firstName: _firstNameController.text,
+        lastName: _lastNameController.text,
+        phone: _phoneController.text,
+        email: _emailController.text,
+      );
+
+      // Save pickup address
+      final pickupAddress = UserAddress(
+        street: _pickupStreetController.text,
+        apartment: _pickupAptController.text,
+        city: _pickupCityController.text,
+        zipCode: _pickupZipController.text,
+      );
+      orderProvider.setPickupAddress(pickupAddress);
+
+      // Save delivery address
+      if (_isSameAsPickup) {
+        orderProvider.setDeliveryAddress(pickupAddress);
+      } else {
+        final deliveryAddress = UserAddress(
+          street: _deliveryStreetController.text,
+          apartment: _deliveryAptController.text,
+          city: _deliveryCityController.text,
+          zipCode: _deliveryZipController.text,
+        );
+        orderProvider.setDeliveryAddress(deliveryAddress);
+      }
+
+      widget.onNext();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
 
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 500),
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text(localizations.pickup_address_title),
-            actions: [
-              // Replace the old IconButton with this TextButton
-              TextButton(
-                onPressed: () {
-                  final provider =
-                      Provider.of<LocaleProvider>(context, listen: false);
-                  final currentLocale = provider.locale;
-
-                  if (currentLocale.languageCode == 'es') {
-                    provider.setLocale(const Locale('en'));
-                  } else {
-                    provider.setLocale(const Locale('es'));
-                  }
-                },
-                child: Consumer<LocaleProvider>(
-                  builder: (context, localeProvider, child) {
-                    final isSpanish =
-                        localeProvider.locale.languageCode == 'es';
-                    // Get the correct color for text/icons on the AppBar from the theme
-                    final Color textColor =
-                        Theme.of(context).appBarTheme.iconTheme?.color ??
-                            Colors.black;
-
-                    return Row(
-                      children: [
-                        Text(
-                          'EN',
-                          style: TextStyle(
-                            color: textColor,
-                            fontWeight:
-                                isSpanish ? FontWeight.normal : FontWeight.bold,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                          child: Text(
-                            '/',
-                            style: TextStyle(color: textColor.withOpacity(0.7)),
-                          ),
-                        ),
-                        Text(
-                          'ES',
-                          style: TextStyle(
-                            color: textColor,
-                            fontWeight:
-                                isSpanish ? FontWeight.bold : FontWeight.normal,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-          body: Column(
-            children: [
-              StepProgressBar(currentStep: widget.currentStep, totalSteps: 4),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Basic Form Fields
-                      Text(localizations.street_address,
-                          style: Theme.of(context).textTheme.titleMedium),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: _pickupStreetController, // Add this
-                        decoration: InputDecoration(
-                            border: OutlineInputBorder(),
-                            hintText: "123 Main Street"),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(localizations.apt_unit,
-                          style: Theme.of(context).textTheme.titleMedium),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: _pickupAptController, // Add this
-                        decoration: InputDecoration(
-                            border: OutlineInputBorder(), hintText: "Apt 4B"),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Recent Addresses Section
-                      Text(localizations.recent_addresses,
-                          style: Theme.of(context).textTheme.titleLarge),
-                      const SizedBox(height: 8),
-                      FutureBuilder<List<UserAddress>>(
-                        future: _recentAddressesFuture,
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                                child: CircularProgressIndicator());
-                          }
-                          if (snapshot.hasError) {
-                            return const Center(
-                                child: Text("Could not load addresses."));
-                          }
-                          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                            return const Center(
-                                child: Text("No recent addresses."));
-                          }
-                          final addresses = snapshot.data!;
-                          return ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: addresses.length,
-                            itemBuilder: (context, index) {
-                              final address = addresses[index];
-                              return GestureDetector(
-                                // Wrap the Card
-                                onTap: () {
-                                  setState(() {
-                                    // A simplified split for this mock data
-                                    final parts = address.street.split(',');
-                                    _pickupStreetController.text =
-                                        parts.isNotEmpty ? parts[0].trim() : '';
-                                    _pickupAptController.text =
-                                        parts.length > 1 ? parts[1].trim() : '';
-                                    _pickupCityController.text = address.city;
-                                    _pickupZipController.text = address.zipCode;
-                                  });
-                                },
-                                child: Card(
-                                  // The existing Card
-                                  margin:
-                                      const EdgeInsets.symmetric(vertical: 4.0),
-                                  child: ListTile(
-                                    leading: const Icon(Icons.history),
-                                    title: Text(address.street),
-                                    subtitle: Text(
-                                        "${address.city}, ${address.zipCode}"),
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 24),
-                      SwitchListTile(
-                        title: Text(localizations.delivery_same_as_pickup,
-                            style: Theme.of(context).textTheme.titleMedium),
-                        value: _isSameAsPickup,
-                        onChanged: (bool value) {
-                          setState(() {
-                            _isSameAsPickup = value;
-                          });
-                        },
-                      ),
-
-                      // Hidden delivery form
-                      if (!_isSameAsPickup)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 16),
-                            Text(localizations.delivery_address,
-                                style: Theme.of(context).textTheme.titleLarge),
-                            const SizedBox(height: 16),
-                            Text(localizations.street_address,
-                                style: Theme.of(context).textTheme.titleMedium),
-                            const SizedBox(height: 8),
-                            const TextField(
-                                decoration: InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    hintText: "123 Main Street")),
-                            const SizedBox(height: 16),
-                            Text(localizations.apt_unit,
-                                style: Theme.of(context).textTheme.titleMedium),
-                            const SizedBox(height: 8),
-                            TextField(
-                              controller: _deliveryAptController,
-                              decoration: InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  hintText: "Apt 4B"),
-                            ),
-                          ],
-                        ),
-                    ],
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24.0),
+      child: Form(
+        key: _formKey,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+        onChanged: _validateForm,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Personal Information Section
+            Text(localizations.personal_information_title,
+                style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _firstNameController,
+                    decoration: InputDecoration(
+                      labelText: localizations.first_name,
+                      border: const OutlineInputBorder(),
+                    ),
+                    validator: (value) => value!.isEmpty
+                        ? localizations.please_enter_first_name
+                        : null,
                   ),
                 ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: TextFormField(
+                    controller: _lastNameController,
+                    decoration: InputDecoration(
+                      labelText: localizations.last_name,
+                      border: const OutlineInputBorder(),
+                    ),
+                    validator: (value) => value!.isEmpty
+                        ? localizations.please_enter_last_name
+                        : null,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _phoneController,
+              decoration: InputDecoration(
+                labelText: localizations.phone_number,
+                border: const OutlineInputBorder(),
               ),
-            ],
-          ),
-          bottomNavigationBar: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: PrimaryButton(
-              text: localizations.continue_button,
-              onPressed: () {
-                // Use the Provider to get the OrderProvider instance
-                final orderProvider =
-                    Provider.of<OrderProvider>(context, listen: false);
-
-                // Create a UserAddress object from the controllers
-                final pickupAddress = UserAddress(
-                  street: _pickupStreetController.text,
-                  apartment: _pickupAptController.text,
-                  city: _pickupCityController.text.isEmpty
-                      ? "Default City"
-                      : _pickupCityController.text,
-                  zipCode: _pickupZipController.text.isEmpty
-                      ? "00000"
-                      : _pickupZipController.text,
-                );
-
-                orderProvider.setPickupAddress(pickupAddress);
-
-                // Also handle delivery address
-                if (_isSameAsPickup) {
-                  orderProvider.setDeliveryAddress(pickupAddress);
-                } else {
-                  // In a real app, you'd create a separate Delivery Address object
-                  orderProvider.setDeliveryAddress(null);
-                }
-
-                // Navigate to the next page
-                widget.onNext();
+              keyboardType: TextInputType.phone,
+              validator: (value) =>
+                  value!.isEmpty ? localizations.please_enter_phone : null,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _emailController,
+              decoration: InputDecoration(
+                labelText: localizations.email,
+                border: const OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.emailAddress,
+              validator: (value) {
+                if (value!.isEmpty) return localizations.please_enter_email;
+                if (!value.contains('@'))
+                  return localizations.please_enter_valid_email;
+                return null;
               },
             ),
-          ),
+            const SizedBox(height: 32),
+
+            // Pickup Address Section
+            Text(localizations.pickup_address_title,
+                style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 16),
+            _buildAddressFields(
+              localizations: localizations,
+              streetController: _pickupStreetController,
+              aptController: _pickupAptController,
+              cityController: _pickupCityController,
+              zipController: _pickupZipController,
+            ),
+            const SizedBox(height: 24),
+
+            // Delivery Address Toggle
+            SwitchListTile(
+              title: Text(localizations.delivery_same_as_pickup,
+                  style: Theme.of(context).textTheme.titleMedium),
+              value: _isSameAsPickup,
+              onChanged: (bool value) {
+                setState(() {
+                  _isSameAsPickup = value;
+                });
+                // Re-validate when the switch is toggled
+                WidgetsBinding.instance
+                    .addPostFrameCallback((_) => _validateForm());
+              },
+              secondary: const Icon(Icons.local_shipping_outlined),
+              contentPadding: EdgeInsets.zero,
+            ),
+
+            // Delivery Address Section (conditional)
+            if (!_isSameAsPickup) ...[
+              const SizedBox(height: 24),
+              Text(localizations.delivery_address,
+                  style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 16),
+              _buildAddressFields(
+                localizations: localizations,
+                streetController: _deliveryStreetController,
+                aptController: _deliveryAptController,
+                cityController: _deliveryCityController,
+                zipController: _deliveryZipController,
+              ),
+            ],
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildAddressFields({
+    required AppLocalizations localizations,
+    required TextEditingController streetController,
+    required TextEditingController aptController,
+    required TextEditingController cityController,
+    required TextEditingController zipController,
+  }) {
+    return Column(
+      children: [
+        TextFormField(
+          controller: streetController,
+          decoration: InputDecoration(
+            labelText: localizations.street_address,
+            border: const OutlineInputBorder(),
+          ),
+          validator: (value) =>
+              value!.isEmpty ? localizations.please_enter_street_address : null,
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: aptController,
+          decoration: InputDecoration(
+            labelText: '${localizations.apt_unit} (${localizations.optional})',
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: cityController,
+                decoration: InputDecoration(
+                  labelText: localizations.city,
+                  border: const OutlineInputBorder(),
+                ),
+                validator: (value) =>
+                    value!.isEmpty ? localizations.please_enter_city : null,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: TextFormField(
+                controller: zipController,
+                decoration: InputDecoration(
+                  labelText: localizations.zip_code,
+                  border: const OutlineInputBorder(),
+                ),
+                validator: (value) =>
+                    value!.isEmpty ? localizations.please_enter_zip_code : null,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

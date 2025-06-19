@@ -11,5 +11,6 @@
     "select_pickup_date": "Select Pickup Date",
     "select_time_slot": "Select Time Slot",
     "select_services_title": "Select Services",
-    "order_summary_title": "Order Summary"
+    "order_summary_title": "Order Summary",
+    "tap_to_search_address": "Tap to search for an address"
 } 

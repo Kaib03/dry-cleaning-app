@@ -1,6 +1,7 @@
 // Purpose: The visual progress bar showing the user's current step.
 
 import 'package:flutter/material.dart';
+import '../../app_localizations.dart';
 
 class StepProgressBar extends StatelessWidget {
   final int currentStep;
@@ -14,6 +15,7 @@ class StepProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
     final double percent = (currentStep / totalSteps).clamp(0.0, 1.0);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
@@ -24,7 +26,7 @@ class StepProgressBar extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Paso $currentStep de $totalSteps',
+                '${localizations.step_of} $currentStep ${localizations.step_divider} $totalSteps',
                 style: Theme.of(context)
                     .textTheme
                     .bodyMedium

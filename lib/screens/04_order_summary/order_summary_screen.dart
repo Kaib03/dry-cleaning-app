@@ -2,140 +2,149 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../app_localizations.dart';
-import '../../widgets/common/primary_button.dart';
 import '../../state/order_provider.dart';
+import '../../state/locale_provider.dart';
+import '../../models/service_item.dart';
 import 'package:intl/intl.dart';
 
 class OrderSummaryScreen extends StatelessWidget {
   final VoidCallback onBack;
+  final Function(int)? onEditStep; // Add callback to navigate to specific step
 
-  const OrderSummaryScreen({super.key, required this.onBack});
+  const OrderSummaryScreen({super.key, required this.onBack, this.onEditStep});
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!;
     return Consumer<OrderProvider>(
       builder: (context, order, child) {
+        final localizations = AppLocalizations.of(context)!;
+        final localeProvider = Provider.of<LocaleProvider>(context);
         // Format the data from the provider
         final pickupAddress = order.pickupAddress != null
             ? '${order.pickupAddress!.street}${(order.pickupAddress!.apartment?.isNotEmpty ?? false) ? ', ${order.pickupAddress!.apartment}' : ''}\n${order.pickupAddress!.city}, ${order.pickupAddress!.zipCode}'
-            : 'Not selected';
+            : localizations.not_selected;
 
         final deliveryAddress = order.deliveryAddress != null
             ? (order.deliveryAddress == order.pickupAddress
-                ? 'Same as pickup address'
+                ? localizations.same_as_pickup_address
                 : '${order.deliveryAddress!.street}${(order.deliveryAddress!.apartment?.isNotEmpty ?? false) ? ', ${order.deliveryAddress!.apartment}' : ''}\n${order.deliveryAddress!.city}, ${order.deliveryAddress!.zipCode}')
-            : 'Not selected';
+            : localizations.not_selected;
 
         final pickupDate = order.scheduleSlot != null
-            ? DateFormat('EEEE, MMMM d').format(order.scheduleSlot!.date)
-            : 'Not selected';
+            ? DateFormat('EEEE, MMMM d', localeProvider.locale.languageCode)
+                .format(order.scheduleSlot!.date)
+            : localizations.not_selected;
 
         final pickupTime = order.scheduleSlot != null
             ? '${order.scheduleSlot!.startTime.format(context)} - ${order.scheduleSlot!.endTime.format(context)}'
-            : 'Not selected';
+            : localizations.not_selected;
 
         // Calculate total from selected services
         double subtotal = 0;
         for (var item in order.selectedItems) {
-          subtotal += item.price * item.quantity;
+          subtotal += item.totalPrice;
         }
         final delivery = 3.99;
-        final tax = subtotal * 0.08; // 8% tax
-        final total = subtotal + delivery + tax;
+        // No separate tax in Europe - prices include tax
+        final total = subtotal + delivery;
 
-        return Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 500),
-            child: Scaffold(
-              appBar: AppBar(
-                leading: IconButton(
-                    icon: const Icon(Icons.arrow_back), onPressed: onBack),
-                title: Text(localizations.order_summary_title),
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // --- Personal Information Section ---
+              _buildSectionHeader(context,
+                  icon: Icons.person_outline,
+                  title: localizations.personal_information_title,
+                  editStep: 0),
+              const SizedBox(height: 8),
+              _buildInfoCard(
+                children: [
+                  _buildInfoRow(context,
+                      label: localizations.name,
+                      value:
+                          "${order.firstName ?? localizations.not_provided} ${order.lastName ?? localizations.not_provided}"),
+                  const Divider(height: 24),
+                  _buildInfoRow(context,
+                      label: localizations.phone,
+                      value: order.phone ?? localizations.not_provided),
+                  const Divider(height: 24),
+                  _buildInfoRow(context,
+                      label: localizations.email,
+                      value: order.email ?? localizations.not_provided),
+                ],
               ),
-              body: SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // --- Pickup & Delivery Section ---
-                    _buildSectionHeader(context,
-                        icon: Icons.local_shipping_outlined,
-                        title: "Pickup & Delivery"),
-                    const SizedBox(height: 8),
-                    _buildInfoCard(
-                      children: [
-                        _buildInfoRow(context,
-                            label: "Pickup Address", value: pickupAddress),
-                        const Divider(height: 24),
-                        _buildInfoRow(context,
-                            label: "Delivery Address", value: deliveryAddress),
-                        const Divider(height: 24),
-                        _buildInfoRow(context,
-                            label: "Pickup Date", value: pickupDate),
-                        const Divider(height: 24),
-                        _buildInfoRow(context,
-                            label: "Pickup Time", value: pickupTime),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-                    // --- Order Details Section ---
-                    _buildSectionHeader(context,
-                        icon: Icons.list_alt_outlined, title: "Order Details"),
-                    const SizedBox(height: 8),
-                    _buildInfoCard(
-                      children: [
-                        if (order.selectedItems.isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 16.0),
-                            child: Text("No items selected."),
-                          )
-                        else
-                          ...order.selectedItems.map((item) => _buildInfoRow(
-                              context,
-                              label: "${item.quantity}x ${item.name}",
-                              value:
-                                  "\$${(item.price * item.quantity).toStringAsFixed(2)}")),
-                        const Divider(height: 24),
-                        _buildInfoRow(context,
-                            label: "Special Instructions", value: "None"),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
+              // --- Pickup & Delivery Section ---
+              _buildSectionHeader(context,
+                  icon: Icons.local_shipping_outlined,
+                  title: localizations.pickup_and_delivery,
+                  editStep: 1),
+              const SizedBox(height: 8),
+              _buildInfoCard(
+                children: [
+                  _buildInfoRow(context,
+                      label: localizations.pickup_address_summary,
+                      value: pickupAddress),
+                  const Divider(height: 24),
+                  _buildInfoRow(context,
+                      label: localizations.delivery_address_label,
+                      value: deliveryAddress),
+                  const Divider(height: 24),
+                  _buildInfoRow(context,
+                      label: localizations.pickup_date, value: pickupDate),
+                  const Divider(height: 24),
+                  _buildInfoRow(context,
+                      label: localizations.pickup_time, value: pickupTime),
+                ],
+              ),
+              const SizedBox(height: 24),
 
-                    // --- Payment Summary Section ---
-                    _buildSectionHeader(context,
-                        icon: Icons.credit_card_outlined,
-                        title: "Payment Summary"),
-                    const SizedBox(height: 8),
-                    _buildInfoCard(
-                      children: [
-                        _buildPriceRow(context, "Subtotal",
-                            "\$${subtotal.toStringAsFixed(2)}"),
-                        const SizedBox(height: 8),
-                        _buildPriceRow(context, "Pickup & Delivery",
-                            "\$${delivery.toStringAsFixed(2)}"),
-                        const SizedBox(height: 8),
-                        _buildPriceRow(
-                            context, "Tax", "\$${tax.toStringAsFixed(2)}"),
-                        const Divider(height: 24),
-                        _buildPriceRow(
-                            context, "Total", "\$${total.toStringAsFixed(2)}",
-                            isTotal: true),
-                      ],
-                    ),
-                  ],
-                ),
+              // --- Order Details Section ---
+              _buildSectionHeader(context,
+                  icon: Icons.list_alt_outlined,
+                  title: localizations.order_details,
+                  editStep: 2),
+              const SizedBox(height: 8),
+              _buildInfoCard(
+                children: [
+                  if (order.selectedItems.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      child: Text(localizations.no_items_selected),
+                    )
+                  else
+                    ...order.selectedItems
+                        .map((item) => _buildItemRow(context, item)),
+                  const Divider(height: 24),
+                  _buildInfoRow(context,
+                      label: localizations.special_instructions,
+                      value: order.specialInstructions ?? localizations.none),
+                ],
               ),
-              bottomNavigationBar: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: PrimaryButton(
-                  text: "Confirm Pickup",
-                  onPressed: () {},
-                ),
+              const SizedBox(height: 24),
+
+              // --- Payment Summary Section ---
+              _buildSectionHeader(context,
+                  icon: Icons.credit_card_outlined,
+                  title: localizations.payment_summary),
+              const SizedBox(height: 8),
+              _buildInfoCard(
+                children: [
+                  _buildPriceRow(context, localizations.subtotal,
+                      "€${subtotal.toStringAsFixed(2)}"),
+                  const SizedBox(height: 8),
+                  _buildPriceRow(context, localizations.pickup_delivery_fee,
+                      "€${delivery.toStringAsFixed(2)}"),
+                  const SizedBox(height: 8),
+                  _buildPriceRow(context, localizations.total,
+                      "€${total.toStringAsFixed(2)}",
+                      isTotal: true),
+                ],
               ),
-            ),
+            ],
           ),
         );
       },
@@ -145,18 +154,35 @@ class OrderSummaryScreen extends StatelessWidget {
   // --- NEW HELPER WIDGETS ---
 
   Widget _buildSectionHeader(BuildContext context,
-      {required IconData icon, required String title}) {
+      {required IconData icon, required String title, int? editStep}) {
     return Row(
       children: [
         Icon(icon, color: Theme.of(context).primaryColor, size: 20),
         const SizedBox(width: 8),
-        Text(
-          title,
-          style: Theme.of(context)
-              .textTheme
-              .titleLarge
-              ?.copyWith(fontWeight: FontWeight.bold),
+        Expanded(
+          child: Text(
+            title,
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(fontWeight: FontWeight.bold),
+          ),
         ),
+        if (editStep != null && onEditStep != null)
+          TextButton.icon(
+            onPressed: () => onEditStep!(editStep),
+            icon: Icon(Icons.edit,
+                size: 16, color: Theme.of(context).primaryColor),
+            label: Text(
+              AppLocalizations.of(context)!.edit,
+              style: TextStyle(color: Theme.of(context).primaryColor),
+            ),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          ),
       ],
     );
   }
@@ -225,6 +251,51 @@ class OrderSummaryScreen extends StatelessWidget {
         Text(label, style: style),
         Text(price, style: style),
       ],
+    );
+  }
+
+  Widget _buildItemRow(BuildContext context, ServiceItem item) {
+    // Build item name with add-ons in brackets (like service selection page)
+    String itemLabel = "${item.quantity}x ${item.name}";
+    if (item.selectedExtras.isNotEmpty) {
+      final addOnsText = item.selectedExtras.map((e) => e.name).join(', ');
+      itemLabel += "\n($addOnsText)";
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "${item.quantity}x ${item.name}",
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                if (item.selectedExtras.isNotEmpty)
+                  Text(
+                    "(${item.selectedExtras.map((e) => e.name).join(', ')})",
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Colors.grey.shade600,
+                        ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          Text(
+            "€${item.totalPrice.toStringAsFixed(2)}",
+            style: Theme.of(context)
+                .textTheme
+                .bodyLarge
+                ?.copyWith(fontWeight: FontWeight.bold),
+            textAlign: TextAlign.right,
+          ),
+        ],
+      ),
     );
   }
 }

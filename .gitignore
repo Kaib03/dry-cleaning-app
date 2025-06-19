@@ -1,3 +1,10 @@
 # https://dart.dev/guides/libraries/private-files
 # Created by `dart pub`
 .dart_tool/
+
+# See https://www.dartlang.org/tools/pub/gitignore
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+lib/config/secrets.dart

@@ -1,6 +1,5 @@
 // Purpose: A fake implementation of the service repository.
 import '../models/service_category.dart';
-import '../models/service_item.dart';
 import 'abstract_service_repository.dart';
 import '../models/specific_service_item.dart';
 import '../models/service_extra.dart';
